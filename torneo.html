@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torneo — ENANO TIMBA</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #130A29;
+    --bg-2: #1C1040;
+    --surface: #241452;
+    --surface-2: #2E1A63;
+    --line: rgba(255,246,228,0.14);
+    --line-strong: rgba(255,246,228,0.28);
+    --cream: #FFF6E4;
+    --cream-dim: #C9BBE8;
+    --gold: #FFC93C;
+    --magenta: #FF3B7A;
+    --cyan: #33E7C3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(1.5px 1.5px at 10% 15%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1.5px 1.5px at 85% 8%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 60% 30%, rgba(255,255,255,0.35), transparent),
+      radial-gradient(1.5px 1.5px at 30% 70%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 92% 60%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 45% 90%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 75% 80%, rgba(255,255,255,0.35), transparent),
+      radial-gradient(circle at 50% 0%, #2E1A63 0%, var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--cream);
+    font-family:'Manrope', sans-serif;
+    line-height:1.6;
+  }
+  h1,h2,.display{ font-family:'Fredoka', sans-serif; font-weight:600; margin:0; }
+  .wrap{ max-width:1200px; margin:0 auto; padding:36px 20px 70px; }
+  .top{ text-align:center; margin-bottom:30px; }
+  .top .tag{ color:var(--cyan); font-weight:700; font-size:13px; letter-spacing:0.04em; }
+  .top h1{ font-size:clamp(28px,6vw,44px); color:var(--gold); margin-top:6px; text-shadow:2px 3px 0 #5B2F9E; }
+  .top p{ color:var(--cream-dim); margin-top:10px; font-size:14px; }
+
+  /* ---------- setup panel ---------- */
+  .setup{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:24px;
+    max-width:720px;
+    margin:0 auto 34px;
+  }
+  .setup h2{ font-size:16px; margin-bottom:4px; }
+  .setup .hint{ color:var(--cream-dim); font-size:13px; margin-bottom:16px; }
+  .player-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .player-grid input{
+    width:100%;
+    background:var(--bg-2);
+    border:1px solid var(--line-strong);
+    border-radius:10px;
+    padding:9px 12px;
+    color:var(--cream);
+    font-size:13.5px;
+  }
+  .player-grid input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .setup-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+  .btn{
+    border:none; border-radius:999px;
+    padding:11px 22px;
+    font-weight:800;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .btn-gold{ background:var(--gold); color:#2C1D00; }
+  .btn-outline{ background:transparent; border:1px solid var(--line-strong); color:var(--cream); }
+  .setup-error{ color:var(--magenta); font-size:13px; margin-top:10px; min-height:16px; }
+
+  /* ---------- bracket ---------- */
+  .bracket-wrap{ display:none; }
+  .bracket-wrap.active{ display:block; }
+  .bracket-actions{ display:flex; justify-content:center; gap:10px; margin-bottom:28px; flex-wrap:wrap; }
+
+  .bracket{
+    display:flex;
+    align-items:center;
+    gap:28px;
+    overflow-x:auto;
+    padding:10px 4px 30px;
+  }
+  .side{ display:flex; gap:20px; }
+  .side.right{ flex-direction:row-reverse; }
+  .round-col{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-around;
+    gap:16px;
+    min-width:168px;
+  }
+  .round-label{
+    text-align:center;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:0.04em;
+    color:var(--cyan);
+    margin-bottom:6px;
+  }
+  .match{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:6px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .slot{
+    background:var(--bg-2);
+    border:1px solid transparent;
+    border-radius:8px;
+    padding:9px 10px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--cream-dim);
+    cursor:pointer;
+    text-align:left;
+    width:100%;
+    transition:background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .slot:disabled{ cursor:default; opacity:0.55; }
+  .slot.empty{ color:rgba(201,187,232,0.4); font-style:italic; font-weight:500; }
+  .slot.winner{
+    background:rgba(255,201,60,0.18);
+    border-color:var(--gold);
+    color:var(--gold);
+  }
+  .slot.loser{
+    text-decoration:line-through;
+    opacity:0.45;
+  }
+  .slot:not(:disabled):hover{
+    border-color:var(--cyan);
+    color:var(--cream);
+  }
+
+  .center-col{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+    min-width:190px;
+  }
+  .champion-box{
+    text-align:center;
+  }
+  .champion-label{
+    display:inline-block;
+    background:var(--gold);
+    color:#2C1D00;
+    font-weight:800;
+    font-size:11px;
+    padding:4px 14px;
+    border-radius:999px;
+    margin-bottom:10px;
+  }
+  .champion-name{
+    font-family:'Fredoka',sans-serif;
+    font-size:22px;
+    color:var(--gold);
+    min-height:30px;
+  }
+  .trophy{
+    font-size:54px;
+    margin-top:6px;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+  }
+
+  @media (max-width:860px){
+    .bracket{ gap:16px; }
+    .side{ gap:14px; }
+    .round-col{ min-width:140px; gap:12px; }
+    .slot{ font-size:12px; padding:8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="top">
+    <div class="tag">Herramienta privada</div>
+    <h1>TORNEO DE CALLS</h1>
+    <p>Cargá los 16 participantes y tocá al ganador de cada cruce para que avance, hasta llegar al campeón.</p>
+  </div>
+
+  <div class="setup" id="setupPanel">
+    <h2>Participantes (16)</h2>
+    <div class="hint">Completá los nombres de los octavos de final, en orden de cruce.</div>
+    <div class="player-grid" id="playerGrid"></div>
+    <div class="setup-actions">
+      <button class="btn btn-gold" id="generateBtn">Generar cuadro</button>
+      <button class="btn btn-outline" id="clearNamesBtn">Vaciar nombres</button>
+    </div>
+    <div class="setup-error" id="setupError"></div>
+  </div>
+
+  <div class="bracket-wrap" id="bracketWrap">
+    <div class="bracket-actions">
+      <button class="btn btn-outline" id="editNamesBtn">Editar nombres</button>
+      <button class="btn btn-outline" id="resetPicksBtn">Reiniciar cruces</button>
+    </div>
+    <div class="bracket" id="bracket"></div>
+  </div>
+
+</div>
+
+<script>
+var STORAGE_KEY = 'enano-timba-torneo-v1';
+var NUM_PLAYERS = 16;
+
+// state.names: 16 strings
+// state.winners: [round0(8 slots), round1(4 slots), round2(2 slots), round3(1 slot)]
+var state = {
+  names: new Array(NUM_PLAYERS).fill(''),
+  winners: [
+    new Array(8).fill(null),
+    new Array(4).fill(null),
+    new Array(2).fill(null),
+    new Array(1).fill(null)
+  ],
+  started: false
+};
+
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function load(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      var parsed = JSON.parse(raw);
+      if(parsed && parsed.names && parsed.names.length === NUM_PLAYERS){
+        state = parsed;
+      }
+    }
+  }catch(e){}
+}
+
+var playerGrid = document.getElementById('playerGrid');
+var setupPanel = document.getElementById('setupPanel');
+var bracketWrap = document.getElementById('bracketWrap');
+var bracketEl = document.getElementById('bracket');
+var setupError = document.getElementById('setupError');
+
+function renderSetup(){
+  playerGrid.innerHTML = '';
+  for(var i = 0; i < NUM_PLAYERS; i++){
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Jugador ' + (i + 1);
+    input.value = state.names[i] || '';
+    input.dataset.index = i;
+    input.maxLength = 22;
+    input.addEventListener('input', function(e){
+      state.names[e.target.dataset.index] = e.target.value;
+      save();
+    });
+    playerGrid.appendChild(input);
+  }
+}
+
+function getRoundLabel(roundIndex){
+  return ['OCTAVOS DE FINAL', 'CUARTOS DE FINAL', 'SEMIFINAL', 'FINAL'][roundIndex];
+}
+
+// returns display name for a given round's input slot (what feeds INTO that round)
+// round 0 inputs come from state.names; round r>0 inputs come from winners[r-1]
+function getFeedName(round, slotIndex){
+  if(round === 0){ return state.names[slotIndex] || ''; }
+  return state.winners[round - 1][slotIndex] || '';
+}
+
+function clearDownstream(round, matchIndex){
+  if(round >= state.winners.length - 1) {
+    // this was the final; nothing downstream besides champion display, which re-renders automatically
+    state.winners[round][matchIndex] = null;
+    return;
+  }
+  state.winners[round][matchIndex] = null;
+  var nextMatch = Math.floor(matchIndex / 2);
+  clearDownstream(round + 1, nextMatch);
+}
+
+function pickWinner(round, matchIndex, name){
+  state.winners[round][matchIndex] = name;
+  // clear anything downstream that depended on the OLD value of this slot
+  if(round < state.winners.length - 1){
+    var nextMatch = Math.floor(matchIndex / 2);
+    clearDownstream(round + 1, nextMatch);
+  }
+  save();
+  renderBracket();
+}
+
+function makeSlotButton(round, matchIndex, slotPos, name){
+  var btn = document.createElement('button');
+  var winnerName = state.winners[round][matchIndex];
+  var hasName = !!name;
+  btn.className = 'slot' + (hasName ? '' : ' empty');
+  btn.textContent = hasName ? name : '—';
+  btn.disabled = !hasName;
+
+  if(winnerName){
+    if(winnerName === name){
+      btn.classList.add('winner');
+    } else {
+      btn.classList.add('loser');
+    }
+  }
+
+  btn.addEventListener('click', function(){
+    if(!hasName) return;
+    pickWinner(round, matchIndex, name);
+  });
+  return btn;
+}
+
+function buildRoundColumn(round, matchIndices){
+  var col = document.createElement('div');
+  col.className = 'round-col';
+  var label = document.createElement('div');
+  label.className = 'round-label';
+  label.textContent = getRoundLabel(round);
+  col.appendChild(label);
+
+  matchIndices.forEach(function(matchIndex){
+    var matchBox = document.createElement('div');
+    matchBox.className = 'match';
+    var nameA = getFeedName(round, matchIndex * 2);
+    var nameB = getFeedName(round, matchIndex * 2 + 1);
+    matchBox.appendChild(makeSlotButton(round, matchIndex, 0, nameA));
+    matchBox.appendChild(makeSlotButton(round, matchIndex, 1, nameB));
+    col.appendChild(matchBox);
+  });
+
+  return col;
+}
+
+function renderBracket(){
+  bracketEl.innerHTML = '';
+
+  var leftSide = document.createElement('div');
+  leftSide.className = 'side left';
+  leftSide.appendChild(buildRoundColumn(0, [0,1,2,3]));
+  leftSide.appendChild(buildRoundColumn(1, [0,1]));
+  leftSide.appendChild(buildRoundColumn(2, [0]));
+
+  var rightSide = document.createElement('div');
+  rightSide.className = 'side right';
+  rightSide.appendChild(buildRoundColumn(0, [4,5,6,7]));
+  rightSide.appendChild(buildRoundColumn(1, [2,3]));
+  rightSide.appendChild(buildRoundColumn(2, [1]));
+
+  var centerCol = document.createElement('div');
+  centerCol.className = 'center-col';
+
+  var finalLabel = document.createElement('div');
+  finalLabel.className = 'round-label';
+  finalLabel.textContent = 'FINAL';
+  centerCol.appendChild(finalLabel);
+
+  var finalMatch = document.createElement('div');
+  finalMatch.className = 'match';
+  var finalA = getFeedName(3, 0);
+  var finalB = getFeedName(3, 1);
+  finalMatch.appendChild(makeSlotButton(3, 0, 0, finalA));
+  finalMatch.appendChild(makeSlotButton(3, 0, 1, finalB));
+  centerCol.appendChild(finalMatch);
+
+  var championBox = document.createElement('div');
+  championBox.className = 'champion-box';
+  var champLabelEl = document.createElement('div');
+  champLabelEl.className = 'champion-label';
+  champLabelEl.textContent = 'CAMPEÓN';
+  var champNameEl = document.createElement('div');
+  champNameEl.className = 'champion-name';
+  champNameEl.textContent = state.winners[3][0] || '';
+  championBox.appendChild(champLabelEl);
+  championBox.appendChild(champNameEl);
+  var trophyEl = document.createElement('div');
+  trophyEl.className = 'trophy';
+  trophyEl.textContent = '🏆';
+  championBox.appendChild(trophyEl);
+  centerCol.appendChild(championBox);
+
+  bracketEl.appendChild(leftSide);
+  bracketEl.appendChild(centerCol);
+  bracketEl.appendChild(rightSide);
+}
+
+function showBracket(){
+  setupPanel.style.display = 'none';
+  bracketWrap.classList.add('active');
+  renderBracket();
+}
+function showSetup(){
+  bracketWrap.classList.remove('active');
+  setupPanel.style.display = 'block';
+  renderSetup();
+}
+
+document.getElementById('generateBtn').addEventListener('click', function(){
+  var filled = state.names.filter(function(n){ return n && n.trim(); });
+  if(filled.length < NUM_PLAYERS){
+    setupError.textContent = 'Completá los 16 nombres antes de generar el cuadro.';
+    return;
+  }
+  setupError.textContent = '';
+  state.started = true;
+  save();
+  showBracket();
+});
+
+document.getElementById('clearNamesBtn').addEventListener('click', function(){
+  state.names = new Array(NUM_PLAYERS).fill('');
+  setupError.textContent = '';
+  save();
+  renderSetup();
+});
+
+document.getElementById('editNamesBtn').addEventListener('click', function(){
+  showSetup();
+});
+
+document.getElementById('resetPicksBtn').addEventListener('click', function(){
+  state.winners = [
+    new Array(8).fill(null),
+    new Array(4).fill(null),
+    new Array(2).fill(null),
+    new Array(1).fill(null)
+  ];
+  save();
+  renderBracket();
+});
+
+load();
+renderSetup();
+if(state.started){
+  showBracket();
+}
+</script>
+
+</body>
+</html>

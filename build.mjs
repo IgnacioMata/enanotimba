@@ -14,8 +14,10 @@ const html = (await readFile("index.html", "utf8"))
   .replace('</body>', '<script src="/community-live.js" defer></script>\n</body>');
 await writeFile("public/index.html", html);
 await copyFile("community-live.js", "public/community-live.js");
-try {
-  await copyFile("torneo.html", "public/torneo.html");
-} catch (error) {
-  if (error.code !== "ENOENT") throw error;
+for (const page of ["torneo.html", "sorteo.html", "palabra.html"]) {
+  try {
+    await copyFile(page, "public/" + page);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
 }
